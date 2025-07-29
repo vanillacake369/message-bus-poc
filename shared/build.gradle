@@ -1,3 +1,6 @@
+// Apply java-library plugin for api() dependencies
+apply plugin: 'java-library'
+
 dependencies {
     // Core Spring dependencies - no web or messaging
     api 'org.springframework.boot:spring-boot-starter'
