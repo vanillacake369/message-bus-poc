@@ -42,11 +42,11 @@ public class OrderService {
         log.info("Created order: {}", savedOrder.getOrderId());
         
         // Publish event
-        OrderCreatedEvent event = new OrderCreatedEvent(
-            orderId, customerId, productId, quantity, price, now, "CREATED"
-        );
-        
-        orderEventPublisher.publishOrderCreated(event);
+        // ToDo : 여기를 인쟈,,, 구현해야지비,,,
+        // OrderCreatedEvent event = new OrderCreatedEvent(
+        //     orderId, customerId, productId, quantity, price, now, "CREATED"
+        // );
+        // orderEventPublisher.publishOrderCreated(event);
         
         return savedOrder;
     }
