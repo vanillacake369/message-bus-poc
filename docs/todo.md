@@ -13,13 +13,168 @@
 
 ### 🔧 구현 작업 (Implementation Tasks)
 
-#### 1. 모니터링 툴 적용
+#### 1. OpenTelemetry (OTLP) 메트릭 구현
+
+**Phase 1A: 공통 OTLP 구성**
+- [ ] **shared 모듈에 OTLP 설정 추가**
+  - [ ] OpenTelemetry SDK 의존성 추가
+  - [ ] OTLP Exporter 설정 클래스 생성
+  - [ ] 공통 메트릭 태그 및 리소스 속성 정의
+  - [ ] 서비스별 메트릭 네이밍 컨벤션 설정
+
+**Phase 1B: Kafka OTLP 메트릭 구현**
+- [ ] **inventory-service OTLP 메트릭 설정**
+  - [ ] OpenTelemetry 의존성 추가 및 기존 Micrometer 대체
+  - [ ] Kafka 메시지 처리 메트릭을 OTLP 형식으로 변환
+  - [ ] 메트릭 수집기(Meter) 설정 및 gauge/counter/histogram 구현
+  - [ ] OTLP 엔드포인트 설정 (http://otel-collector:4318/v1/metrics)
+
+**Phase 1C: RabbitMQ OTLP 메트릭 구현**
+- [ ] **notification-service OTLP 메트릭 설정**
+  - [ ] OpenTelemetry 의존성 추가
+  - [ ] RabbitMQ 메시지 처리 메트릭을 OTLP 형식으로 구현
+  - [ ] AMQP 연결 상태 메트릭 추가
+  - [ ] OTLP 배치 전송 설정 최적화
+
+**Phase 1D: Pulsar OTLP 메트릭 구현**
+- [ ] **analytics-service OTLP 메트릭 설정**
+  - [ ] OpenTelemetry 의존성 추가
+  - [ ] Pulsar 메시지 처리 메트릭을 OTLP 형식으로 구현
+  - [ ] 구독별 백로그 메트릭 추가
+  - [ ] OTLP 메트릭 스키마 검증
+
+**Phase 1E: OTLP 인프라 구성**
+- [ ] **OpenTelemetry Collector 설정**
+  - [ ] docker-compose.yml에 otel-collector 서비스 추가
+  - [ ] OTLP 수신기 및 Prometheus exporter 설정
+  - [ ] 메트릭 파이프라인 및 배치 처리 구성
+  - [ ] Grafana 데이터소스를 Prometheus에서 OTLP로 변경
+
+- [ ] **Grafana 대시보드 업데이트**
+  - [ ] OTLP 메트릭 형식에 맞춘 쿼리 변경
+  - [ ] 실시간 TPS/지연시간 대시보드 업데이트
+  - [ ] 브로커별 성능 비교 패널 OTLP 형식 적용
+  - [ ] 컨슈머 lag 및 처리 속도 OTLP 메트릭 시각화
+
+- [ ] **구조화된 로깅 개선**
+  - [ ] OpenTelemetry 로그 correlation 추가
+  - [ ] Trace ID 및 Span ID를 로그에 포함
+  - [ ] OTLP 로그 export 설정 (선택사항)
+  - [ ] 로그-메트릭 연동을 통한 디버깅 향상
+
 #### 2. Kafka 전용 API 구현
+- [ ] **Kafka Admin API 통합**
+  - [ ] 토픽 생성/삭제/설정 변경 REST API
+  - [ ] 파티션 리밸런싱 API 엔드포인트
+  - [ ] 컨슈머 그룹 관리 (reset offset, describe groups)
+  - [ ] 토픽별 메시지 통계 조회 API
+
+- [ ] **고급 프로듀서 기능**
+  - [ ] 트랜잭션 메시지 발송 API
+  - [ ] 배치 메시지 처리 최적화
+  - [ ] 압축 알고리즘별 성능 테스트 (snappy, lz4, gzip)
+  - [ ] 메시지 키 기반 파티션 라우팅 전략
+
+- [ ] **컨슈머 제어 API**
+  - [ ] 동적 컨슈머 pause/resume 제어
+  - [ ] 수동 오프셋 커밋 관리
+  - [ ] 컨슈머 지연(lag) 실시간 모니터링
+  - [ ] 리밸런싱 리스너 및 상태 추적
+
 #### 3. Kafka 적용
+- [ ] **Spring Kafka 고급 설정**
+  - [ ] ErrorHandler 및 RetryTemplate 커스터마이징
+  - [ ] 컨슈머 동시성 및 스레드 풀 최적화
+  - [ ] Kafka Streams 연동 (실시간 집계 처리)
+  - [ ] 스키마 레지스트리 연동 (Avro/JSON Schema)
+
+- [ ] **성능 최적화**
+  - [ ] 프로듀서 배치 사이즈 및 linger.ms 튜닝
+  - [ ] 컨슈머 fetch.min.bytes 및 max.poll.records 조정
+  - [ ] 압축 타입별 CPU/네트워크 사용량 비교
+  - [ ] 파티션 수 최적화 (CPU 코어 수 기반)
+
+- [ ] **장애 복구 시나리오**
+  - [ ] 브로커 노드 장애 시 자동 failover 테스트
+  - [ ] 네트워크 분할 시 메시지 중복 처리 방지
+  - [ ] 컨슈머 리밸런싱 중 메시지 손실 방지
+  - [ ] 오프셋 커밋 전략별 내구성 비교
+
 #### 4. Pulsar 전용 API 구현
+- [ ] **Pulsar Admin API 통합**
+  - [ ] 네임스페이스/테넌트 관리 REST API
+  - [ ] 토픽 파티션 및 구독 관리
+  - [ ] 메시지 TTL 및 보존 정책 설정
+  - [ ] 백로그 쿼터 및 디스크 사용량 모니터링
+
+- [ ] **고급 메시징 패턴**
+  - [ ] 지연 메시지 스케줄링 API
+  - [ ] 메시지 압축/압축해제 옵션
+  - [ ] 배치 메시지 처리 및 청킹
+  - [ ] 메시지 중복 제거(deduplication) 설정
+
+- [ ] **스키마 레지스트리 활용**
+  - [ ] 동적 스키마 진화 API
+  - [ ] 호환성 검사 및 버전 관리
+  - [ ] JSON/Avro/Protobuf 스키마 지원
+  - [ ] 스키마 유효성 검사 및 에러 처리
+
 #### 5. Pulsar 적용
-#### 6. RabbitMq 전용 API 구현
-#### 7. RabbitMq 적용
+- [ ] **구독 모델 최적화**
+  - [ ] Exclusive/Shared/Failover/KeyShared 구독 타입 비교
+  - [ ] 컨슈머 우선순위 및 가중치 설정
+  - [ ] 메시지 순서 보장을 위한 KeyShared 구독 활용
+  - [ ] 구독별 백로그 모니터링 및 알람
+
+- [ ] **성능 튜닝**
+  - [ ] receiverQueueSize 및 maxTotalReceiverQueueSizeAcrossPartitions 조정
+  - [ ] 배치 처리 크기 및 타임아웃 최적화
+  - [ ] 메모리 및 디스크 계층 저장소 활용
+  - [ ] 압축 알고리즘별 성능 벤치마크
+
+- [ ] **멀티 테넌시 구성**
+  - [ ] 테넌트별 리소스 격리 설정
+  - [ ] 네임스페이스 기반 액세스 제어
+  - [ ] 클러스터 간 지역 복제 설정
+  - [ ] 테넌트별 모니터링 및 할당량 관리
+
+#### 6. RabbitMQ 전용 API 구현
+- [ ] **RabbitMQ Management API 통합**
+  - [ ] 큐/익스체인지/바인딩 관리 REST API
+  - [ ] Virtual Host 및 사용자 권한 관리
+  - [ ] 큐 메시지 수 및 처리율 실시간 조회
+  - [ ] 클러스터 노드 상태 및 동기화 확인
+
+- [ ] **메시지 라우팅 고급 기능**
+  - [ ] 다양한 익스체인지 타입 활용 (direct, fanout, topic, headers)
+  - [ ] 동적 큐 생성 및 자동 삭제 설정
+  - [ ] 메시지 우선순위 큐 구현
+  - [ ] 조건부 라우팅 및 메시지 필터링
+
+- [ ] **신뢰성 보장 메커니즘**
+  - [ ] Publisher Confirms 및 Return 처리
+  - [ ] Consumer Acknowledgment 전략 구현
+  - [ ] Persistent 메시지 설정 및 디스크 동기화
+  - [ ] High Availability 큐 구성 (mirrored queues)
+
+#### 7. RabbitMQ 적용
+- [ ] **Spring AMQP 고급 설정**
+  - [ ] RetryTemplate 및 백오프 전략 커스터마이징
+  - [ ] 동적 리스너 관리 및 스케일링
+  - [ ] 메시지 변환기 및 직렬화 최적화
+  - [ ] Connection Factory 풀링 및 재연결 로직
+
+- [ ] **클러스터링 및 고가용성**
+  - [ ] RabbitMQ 클러스터 구성 및 노드 추가/제거
+  - [ ] 큐 미러링 정책 및 동기화 전략
+  - [ ] 로드 밸런서를 통한 연결 분산
+  - [ ] 장애 조치 시나리오 및 복구 시간 측정
+
+- [ ] **메시지 흐름 제어**
+  - [ ] QoS 프리페치 설정을 통한 백프레셔 관리
+  - [ ] Memory/Disk 알람 임계값 설정
+  - [ ] 메시지 TTL 및 자동 만료 정책
+  - [ ] 큐 길이 제한 및 오버플로우 처리 (drop-head, reject-publish)
 
 ### ✅ 검증 작업 (Verification Tasks)
 
