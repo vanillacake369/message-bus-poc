@@ -299,3 +299,93 @@ docker-compose stop order-service
 # Remove containers and networks
 docker-compose down
 ```
+
+## Verification Plan
+
+A systematic approach to evaluate message broker capabilities beyond surface-level implementations. Each broker is tested across 6 critical areas to provide meaningful performance and cost-effectiveness comparisons.
+
+### Verification Criteria
+
+| Criterion | Description | Business Impact |
+|-----------|-------------|-----------------|
+| **Spring Integration** | Native Spring Boot/Cloud Stream support | Development velocity & maintainability |
+| **Rate Control** | Debounce & throttling capabilities | Resource optimization & duplicate handling |
+| **Fault Tolerance** | Dead Letter Queue policy handling | Reliability & error recovery |
+| **Priority Processing** | Consumer priority reading support | Business-critical message prioritization |
+| **Ordering Guarantees** | Sequential processing completion | Data consistency & business logic integrity |
+| **Observability** | Internal event verification & monitoring | Operational visibility & debugging |
+| **Data Integration** | CDC plugin support | Real-time data synchronization |
+
+### Test Scenarios
+
+#### 1. Debouncing & Throttling
+```mermaid
+flowchart LR
+  LoadGen[K6 Load Generator] -->|1000 msg/s| Broker
+  Broker --> Consumer
+  Consumer -->|Apply rate limits| Metrics[Prometheus Metrics]
+```
+
+**Test Cases**:
+- **Debounce**: 10 identical messages (same customerId) within 1s → expect 1 processed
+- **Throttle**: 1000 msg/s load → verify consumer rate limiting
+
+**Implementation**:
+- Kafka: `max.poll.records` + `pause()/resume()`
+- RabbitMQ: `basicQos(prefetchCount)`
+- Pulsar: `receiverQueueSize`
+
+#### 2. Dead Letter Queue Policy
+```mermaid
+flowchart TB
+  Producer --> Broker
+  Broker --> Consumer
+  Consumer -->|Exception| RetryMechanism[Retry Mechanism]
+  RetryMechanism -->|Max retries exceeded| DLQ[Dead Letter Queue]
+```
+
+**Test Case**: Consumer throws exception → message routes to DLQ after retry limit
+
+**Verification**:
+- Kafka: `DeadLetterPublishingRecoverer`
+- RabbitMQ: Dead Letter Exchange with `x-dead-letter-exchange`
+- Pulsar: `deadLetterPolicy` configuration
+
+#### 3. Consumer Priority & Ordering
+**Priority Test**: 2 consumers (C1: priority 10, C2: priority 1) → C1 receives majority
+**Ordering Test**: Sequential messages (1-10) for same key → processed in order
+
+#### 4. Observability & CDC Integration
+**Metrics Collection**: Query broker APIs for lag, queue depth, consumer offsets
+**CDC Pipeline**: Debezium MySQL → Broker → verify change events
+
+### Performance Benchmarks
+
+| Broker | Throughput (TPS) | Latency (p99) | Memory (GB) | Spring Integration |
+|--------|------------------|---------------|-------------|--------------------|
+| Kafka | Target: 5000 | <50ms | TBD | Native |
+| RabbitMQ | Target: 3000 | <100ms | TBD | Native |
+| Pulsar | Target: 4000 | <75ms | TBD | Community |
+
+### Execution Commands
+
+```bash
+# Full verification suite
+./gradlew :verification-tests:test
+
+# Specific scenario testing
+k6 run k6/debounce-test.js
+k6 run k6/throttle-test.js
+k6 run k6/priority-test.js
+
+# DLQ verification per broker
+./scripts/test-dlq.sh kafka
+./scripts/test-dlq.sh rabbitmq  
+./scripts/test-dlq.sh pulsar
+
+# CDC integration testing
+./scripts/test-cdc.sh
+
+# Metrics collection
+./scripts/collect-metrics.sh
+```

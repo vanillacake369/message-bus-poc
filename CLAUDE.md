@@ -195,3 +195,119 @@ docker-compose down
 - **Integration Tests**: Test binders available for all message brokers
 - **Load Testing**: Docker Compose setup supports scaling consumers
 - **Broker Comparison**: Switch order-service profiles to test different brokers
+
+## Verification Plan
+
+This section outlines the systematic testing approach to evaluate message broker capabilities across 6 critical areas. The goal is to provide meaningful comparisons rather than surface-level implementations.
+
+### Verification Criteria
+
+1. **Spring Framework Integration**: Native Spring Boot/Cloud Stream compatibility
+2. **Rate Control**: Debounce and throttling capabilities
+3. **Fault Tolerance**: Dead Letter Queue (DLQ) policy handling
+4. **Priority Processing**: Consumer priority reading support
+5. **Ordering Guarantees**: Sequential processing completion assurance
+6. **Observability**: Internal event verification and monitoring
+7. **Data Integration**: CDC plugin support
+
+### Test Implementation Strategy
+
+#### 1. Debouncing & Throttling
+**Goal**: Prevent duplicate processing and rate limiting
+
+**Debounce Test**:
+- Publish identical messages (same key/customerId) 10 times within 1 second
+- Expected: Consumer processes only 1 message with debounce logic
+- Implementation: App-level deduplication by key (Kafka/Pulsar) or consumer-side logic (RabbitMQ)
+
+**Throttle Test**:
+- K6 load generator publishes 1000 msg/s
+- Configure broker-specific rate limiting:
+  - Kafka: `max.poll.records` + `pause()/resume()`
+  - RabbitMQ: `basicQos(prefetchCount)`
+  - Pulsar: `receiverQueueSize`
+- Expected: Consumer processes at capped rate
+
+#### 2. Dead Letter Queue Policy
+**Goal**: Failed message routing to DLQ
+
+**Test Case**:
+- Consumer always throws exception on processing
+- After retry limit exceeded, message routes to DLQ
+- Implementation:
+  - Kafka: `DeadLetterPublishingRecoverer` (Spring Kafka)
+  - RabbitMQ: Dead Letter Exchange with `x-dead-letter-exchange`
+  - Pulsar: `deadLetterPolicy` configuration
+
+#### 3. Consumer Priority Reading
+**Goal**: Priority-based message consumption
+
+**Test Case**:
+- Start 2 consumers: C1 (priority 10), C2 (priority 1)
+- Publish 100 messages
+- Expected: C1 receives majority of messages first
+- Implementation:
+  - RabbitMQ: Native `x-priority` consumer argument
+  - Kafka/Pulsar: Application-level priority queues
+
+#### 4. Consumer Processing Order Guarantee
+**Goal**: Sequential processing per key/partition
+
+**Test Case**:
+- Publish ordered messages (1-10) for same key/customerId
+- Expected: Consumer processes in ascending order (1→10)
+- Implementation:
+  - Kafka: Per-partition ordering (single partition per key)
+  - RabbitMQ: Per-queue FIFO (single consumer)
+  - Pulsar: KeyShared subscription for per-key ordering
+
+#### 5. Internal Event Visibility
+**Goal**: Broker metrics and monitoring exposure
+
+**Test Case**:
+- Query broker APIs/CLI for consumer lag, queue depth, offsets
+- Expected: Internal state visibility for monitoring
+- Implementation:
+  - Kafka: `kafka-consumer-groups.sh` + JMX metrics
+  - RabbitMQ: Management HTTP API (`/api/queues`, `/api/connections`)
+  - Pulsar: `pulsar-admin topics stats`
+
+#### 6. CDC Plugin Support
+**Goal**: Change Data Capture integration
+
+**Test Case**:
+- Configure Debezium MySQL → Broker pipeline
+- Execute DB update operation
+- Expected: Change event appears in broker topic/queue
+- Implementation:
+  - Kafka: Native Debezium via Kafka Connect
+  - RabbitMQ: Debezium + RabbitMQ Sink Connector
+  - Pulsar: Pulsar IO Debezium Connector
+
+### Verification Commands
+
+#### Test Execution
+```bash
+# Run verification tests
+./gradlew :verification-tests:test
+
+# Load testing with specific scenarios
+k6 run k6/debounce-test.js
+k6 run k6/throttle-test.js
+k6 run k6/priority-test.js
+
+# DLQ verification
+./scripts/test-dlq.sh kafka
+./scripts/test-dlq.sh rabbitmq
+./scripts/test-dlq.sh pulsar
+
+# Monitoring metrics collection
+./scripts/collect-metrics.sh
+```
+
+#### Expected Outcomes
+- Comprehensive comparison matrix across all 6 criteria
+- Performance benchmarks under load
+- Cost-effectiveness analysis per broker
+- Operational complexity assessment
+- Integration effort evaluation
