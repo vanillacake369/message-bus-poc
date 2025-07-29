@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: notification-service
+  
+  cloud:
+    stream:
+      bindings:
+        processOrderEvents-in-0:
+          destination: order-events
+          group: notification-group
+          content-type: application/json
+      
+      rabbit:
+        binder:
+          connection-name-prefix: notification-service
+        bindings:
+          processOrderEvents-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: notification-dlq
+              max-attempts: 3
+              republish-to-dlq: true
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.poc: DEBUG
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.amqp: INFO

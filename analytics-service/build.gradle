@@ -1,0 +1,28 @@
+dependencies {
+    implementation project(':shared')
+    
+    // Web for analytics REST endpoints
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Database for analytics storage
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    
+    // CONSUMER ONLY - Pulsar consumption for high-throughput
+    implementation 'org.springframework.boot:spring-boot-starter-pulsar'
+    implementation 'org.springframework.boot:spring-boot-starter-pulsar-reactive'
+    implementation 'org.springframework.cloud:spring-cloud-stream'
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-pulsar'
+    
+    // Stream processing
+    implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka-streams'
+    
+    // Reactive support for high-throughput analytics
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
+    // Testing
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+}

@@ -1,0 +1,22 @@
+dependencies {
+    implementation project(':shared')
+    
+    // Actuator only
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // CONSUMER ONLY - RabbitMQ consumption
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    implementation 'org.springframework.amqp:spring-rabbit-stream'
+    implementation 'org.springframework.cloud:spring-cloud-stream'
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-rabbit'
+    
+    // Consumer-specific integration
+    implementation 'org.springframework.integration:spring-integration-amqp'
+    
+    // HTTP client for external notification APIs
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
+    // Testing
+    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+}

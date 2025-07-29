@@ -1,0 +1,22 @@
+dependencies {
+    implementation project(':shared')
+    
+    // Actuator only - no web layer
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Database
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    
+    // CONSUMER ONLY - Kafka consumption
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.cloud:spring-cloud-stream'
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
+    
+    // Consumer-specific integration
+    implementation 'org.springframework.integration:spring-integration-kafka'
+    
+    // Testing
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+}

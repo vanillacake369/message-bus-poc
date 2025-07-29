@@ -1,0 +1,19 @@
+dependencies {
+    // Core Spring dependencies - no web or messaging
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Common utilities
+    api 'com.fasterxml.jackson.core:jackson-databind'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+}
+
+// Shared module should not be executable
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
