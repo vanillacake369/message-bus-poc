@@ -16,11 +16,11 @@
 #### 1. OpenTelemetry (OTLP) 메트릭 구현
 
 **Phase 1A: 공통 OTLP 구성**
-- [ ] **shared 모듈에 OTLP 설정 추가**
-  - [ ] OpenTelemetry SDK 의존성 추가
-  - [ ] OTLP Exporter 설정 클래스 생성
-  - [ ] 공통 메트릭 태그 및 리소스 속성 정의
-  - [ ] 서비스별 메트릭 네이밍 컨벤션 설정
+- [x] **shared 모듈에 OTLP 설정 추가**
+  - [x] OpenTelemetry SDK 의존성 추가
+  - [x] OTLP Exporter 설정 클래스 생성
+  - [x] 공통 메트릭 태그 및 리소스 속성 정의
+  - [x] 서비스별 메트릭 네이밍 컨벤션 설정
 
 **Phase 1B: Kafka OTLP 메트릭 구현**
 - [ ] **inventory-service OTLP 메트릭 설정**

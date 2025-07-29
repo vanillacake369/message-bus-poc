@@ -37,6 +37,11 @@ management:
   endpoint:
     health:
       show-details: always
+  otlp:
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
+        step: 10s
 
 logging:
   level:

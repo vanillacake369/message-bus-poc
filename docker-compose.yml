@@ -128,6 +128,20 @@ services:
       - message-bus-network
 
   # Monitoring
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.88.0
+    command: ["--config=/etc/otelcol-contrib/otel-collector-config.yml"]
+    volumes:
+      - ${PWD}/monitoring/otel-collector-config.yml:/etc/otelcol-contrib/otel-collector-config.yml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus metrics
+    depends_on:
+      - prometheus
+    networks:
+      - message-bus-network
+
   prometheus:
     image: prom/prometheus:v2.45.0
     ports:
