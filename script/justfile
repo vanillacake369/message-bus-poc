@@ -1,0 +1,194 @@
+# Message Bus PoC - Just Commands
+# Usage: just <command> [args]
+
+# Available services: order, inventory, notification, analytics, shared
+services := "order inventory notification analytics"
+
+# Build, test, and restart a single module
+module name:
+    #!/usr/bin/env bash
+    echo "Processing module: {{name}}"
+    if [[ "{{name}}" == "shared" ]]; then
+        cd .. && ./gradlew :shared:build
+        ./gradlew :shared:test
+        echo "Shared module built and tested (no service restart)"
+    else
+        cd .. && ./gradlew :{{name}}-service:build
+        ./gradlew :{{name}}-service:test
+        docker-compose up -d --no-deps --build {{name}}-service
+        echo "Module {{name}} built, tested, and restarted"
+    fi
+
+# Build, test, and restart multiple modules
+modules +names:
+    #!/usr/bin/env bash
+    services=()
+    for name in {{names}}; do
+        echo "Building module: $name"
+        if [[ "$name" == "shared" ]]; then
+            cd .. && ./gradlew :shared:build
+            ./gradlew :shared:test
+        else
+            cd .. && ./gradlew :${name}-service:build
+            ./gradlew :${name}-service:test
+            services+=("${name}-service")
+        fi
+    done
+    if [ ${#services[@]} -gt 0 ]; then
+        echo "Restarting services: ${services[*]}"
+        docker-compose up -d --no-deps --build "${services[@]}"
+    fi
+
+# All operations
+all command:
+    #!/usr/bin/env bash
+    case "{{command}}" in
+        build)
+            echo "Building all modules..."
+            cd .. && ./gradlew build
+            ;;
+        test)
+            echo "Testing all modules..."
+            cd .. && ./gradlew test
+            ;;
+        up)
+            echo "Starting full stack..."
+            cd .. && ./gradlew build
+            docker-compose up -d --build
+            ;;
+        down)
+            echo "Stopping all services..."
+            docker-compose down
+            ;;
+        clean)
+            echo "Clean building all modules..."
+            docker-compose down
+            cd .. && ./gradlew clean build
+            docker-compose up -d --build
+            ;;
+        logs)
+            echo "Showing all service logs..."
+            docker-compose logs -f
+            ;;
+        *)
+            echo "Usage: just all [build|test|up|down|clean|logs]"
+            exit 1
+            ;;
+    esac
+
+# Verification tests
+verification test:
+    #!/usr/bin/env bash
+    case "{{test}}" in
+        debounce)
+            echo "Running debounce/throttling verification..."
+            cd .. && ./gradlew :verification-tests:test --tests "*DebounceTest*"
+            ;;
+        dlq)
+            echo "Running dead letter queue verification..."
+            # ToDo : apply when .sh has implemented
+            # ../scripts/test-dlq.sh kafka
+            # ../scripts/test-dlq.sh rabbitmq
+            # ../scripts/test-dlq.sh pulsar
+            ;;
+        priority)
+            echo "Running consumer priority verification..."
+            cd .. && ./gradlew :verification-tests:test --tests "*PriorityTest*"
+            ;;
+        ordering)
+            echo "Running message ordering verification..."
+            cd .. && ./gradlew :verification-tests:test --tests "*OrderingTest*"
+            ;;
+        monitoring)
+            echo "Running broker monitoring verification..."
+            # ToDo : apply when .sh has implemented
+            # ../scripts/collect-metrics.sh
+            ;;
+        cdc)
+            echo "Running change data capture verification..."
+            cd .. && ./gradlew :verification-tests:test --tests "*CdcTest*"
+            ;;
+        *)
+            echo "Usage: just verification [debounce|dlq|priority|ordering|monitoring|cdc]"
+            exit 1
+            ;;
+    esac
+
+# Utility commands
+
+# Check service health
+health:
+    #!/usr/bin/env bash
+    echo "Checking service health..."
+    docker-compose ps
+    echo ""
+    echo "Service endpoints:"
+    curl -s http://localhost:8080/actuator/health | jq '.' || echo "order-service: DOWN"
+    curl -s http://localhost:8081/actuator/health | jq '.' || echo "inventory-service: DOWN"
+    curl -s http://localhost:8082/actuator/health | jq '.' || echo "notification-service: DOWN"
+    curl -s http://localhost:8083/actuator/health | jq '.' || echo "analytics-service: DOWN"
+
+# View logs for specific service
+logs service:
+    docker-compose logs -f {{service}}-service
+
+# Scale specific service
+scale service count:
+    docker-compose up -d --scale {{service}}-service={{count}}
+
+# Start only infrastructure services
+infra:
+    #!/usr/bin/env bash
+    echo "Starting infrastructure services only..."
+    docker-compose up -d mysql kafka rabbitmq pulsar prometheus grafana
+    echo "Infrastructure ready for local development"
+
+# Load testing shortcuts
+load-test scenario:
+    #!/usr/bin/env bash
+    case "{{scenario}}" in
+        basic)
+            k6 run k6/basic-load-test.js
+            ;;
+        debounce)
+            k6 run k6/debounce-test.js
+            ;;
+        throttle)
+            k6 run k6/throttle-test.js
+            ;;
+        priority)
+            k6 run k6/priority-test.js
+            ;;
+        *)
+            echo "Usage: just load-test [basic|debounce|throttle|priority]"
+            exit 1
+            ;;
+    esac
+
+# Show available commands
+help:
+    @echo "Message Bus PoC - Available Commands:"
+    @echo ""
+    @echo "Module Operations:"
+    @echo "  just module <name>              - Build, test, restart single module"
+    @echo "  just modules <name1> <name2>... - Build, test, restart multiple modules"
+    @echo "  Available modules: order, inventory, notification, analytics, shared"
+    @echo ""
+    @echo "All Operations:"
+    @echo "  just all build                  - Build all modules"
+    @echo "  just all test                   - Test all modules"
+    @echo "  just all up                     - Start full stack" 
+    @echo "  just all down                   - Stop all services"
+    @echo "  just all clean                  - Clean rebuild everything"
+    @echo "  just all logs                   - View all logs"
+    @echo ""
+    @echo "Verification:"
+    @echo "  just verification <test>        - Run verification tests"
+    @echo "  Tests: debounce, dlq, priority, ordering, monitoring, cdc"
+    @echo ""
+    @echo "Utilities:"
+    @echo "  just health                     - Check service health"
+    @echo "  just logs <service>            - View service logs"
+    @echo "  just scale <service> <count>   - Scale service"
+    @echo "  just infra                     - Start infrastructure only"
+    @echo "  just load-test <scenario>      - Run load tests"

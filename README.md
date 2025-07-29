@@ -378,14 +378,17 @@ k6 run k6/debounce-test.js
 k6 run k6/throttle-test.js
 k6 run k6/priority-test.js
 
+# ToDo : apply when .sh has implemented
 # DLQ verification per broker
-./scripts/test-dlq.sh kafka
-./scripts/test-dlq.sh rabbitmq  
-./scripts/test-dlq.sh pulsar
+# ../scripts/test-dlq.sh kafka
+# ../scripts/test-dlq.sh rabbitmq  
+# ../scripts/test-dlq.sh pulsar
 
+# ToDo : apply when .sh has implemented
 # CDC integration testing
-./scripts/test-cdc.sh
+# ../scripts/test-cdc.sh
 
+# ToDo : apply when .sh has implemented
 # Metrics collection
-./scripts/collect-metrics.sh
+# ../scripts/collect-metrics.sh
 ```
