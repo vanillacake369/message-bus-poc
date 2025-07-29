@@ -2,6 +2,8 @@
 
 This project is a Proof of Concept (PoC) comparing message brokers (Kafka, RabbitMQ, and Pulsar) in a Spring Boot microservices architecture. The implementations simulate a flash sale order event processing system to evaluate message broker performance, cost, and features across domain-based services.
 
+> 🚀 **Quick Start**: Use `just` or `make` scripts for convenient local development - see [script/justfile](script/justfile) and [script/makefile](script/makefile)
+
 ## Project Overview
 
 This is a multi-module Spring Boot application designed to evaluate message brokers based on real-world scenarios. Each consumer service is dedicated to a specific broker for direct comparison:
@@ -38,8 +40,53 @@ message-bus-poc/
 - Java 17+
 - Docker & Docker Compose
 - Gradle 8.x
+- **Optional**: [just](https://github.com/casey/just) or make for convenient local scripts
 
 ### Running the Application
+
+#### Option 1: Using Just (Recommended)
+```bash
+# Start infrastructure only (for local development)
+just infra
+
+# Build and start full stack
+just all up
+
+# Build, test, and restart specific module
+just module order
+
+# Build, test, and restart multiple modules
+just modules order inventory
+
+# Check service health
+just health
+
+# View available commands
+just help
+```
+
+#### Option 2: Using Make
+```bash
+# Start infrastructure only
+make infra
+
+# Build and start full stack  
+make all-up
+
+# Build, test, and restart specific module
+make module name=order
+
+# Build, test, and restart multiple modules
+make modules names="order inventory"
+
+# Check service health
+make health
+
+# View available commands
+make help
+```
+
+#### Option 3: Traditional Commands
 
 1. **Start infrastructure services**:
    ```bash
@@ -73,6 +120,29 @@ message-bus-poc/
 
 ## Load Testing
 
+### Using Local Scripts (Recommended)
+
+#### Just Commands
+```bash
+# Basic load test
+just load-test basic
+
+# Specific verification scenarios
+just load-test debounce
+just load-test throttle  
+just load-test priority
+```
+
+#### Make Commands
+```bash
+# Load testing scenarios
+make load-test-basic
+make load-test-debounce
+make load-test-throttle
+make load-test-priority
+```
+
+### Traditional K6 Commands
 K6 load tests are included in the `k6/` directory:
 
 ```bash
@@ -369,6 +439,43 @@ flowchart TB
 
 ### Execution Commands
 
+#### Using Local Scripts (Recommended)
+
+**Just Commands:**
+```bash
+# Verification tests
+just verification debounce    # Debounce/throttling test
+just verification dlq         # Dead letter queue test  
+just verification priority    # Consumer priority test
+just verification ordering    # Message ordering test
+just verification monitoring  # Broker monitoring test
+just verification cdc         # Change data capture test
+
+# Load testing scenarios  
+just load-test basic
+just load-test debounce
+just load-test throttle
+just load-test priority
+```
+
+**Make Commands:**
+```bash
+# Verification tests
+make verification-debounce    # Debounce/throttling test
+make verification-dlq         # Dead letter queue test
+make verification-priority    # Consumer priority test
+make verification-ordering    # Message ordering test  
+make verification-monitoring  # Broker monitoring test
+make verification-cdc         # Change data capture test
+
+# Load testing scenarios
+make load-test-basic
+make load-test-debounce
+make load-test-throttle
+make load-test-priority
+```
+
+#### Traditional Commands
 ```bash
 # Full verification suite
 ./gradlew :verification-tests:test
@@ -378,17 +485,14 @@ k6 run k6/debounce-test.js
 k6 run k6/throttle-test.js
 k6 run k6/priority-test.js
 
-# ToDo : apply when .sh has implemented
-# DLQ verification per broker
+# DLQ verification per broker (when scripts implemented)
 # ../scripts/test-dlq.sh kafka
 # ../scripts/test-dlq.sh rabbitmq  
 # ../scripts/test-dlq.sh pulsar
 
-# ToDo : apply when .sh has implemented
-# CDC integration testing
+# CDC integration testing (when scripts implemented)
 # ../scripts/test-cdc.sh
 
-# ToDo : apply when .sh has implemented
-# Metrics collection
+# Metrics collection (when scripts implemented)
 # ../scripts/collect-metrics.sh
 ```
