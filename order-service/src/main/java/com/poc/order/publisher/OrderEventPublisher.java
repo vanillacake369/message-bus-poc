@@ -5,6 +5,8 @@ import com.poc.shared.utils.EventUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,9 +24,13 @@ public class OrderEventPublisher {
             String eventJson = eventUtils.serialize(event);
             log.info("Publishing order created event for orderId: {}", event.getOrderId());
             
-            // Use customer ID as partition key for ordering
-            streamBridge.send(ORDER_EVENTS_BINDING, eventJson, 
-                             msg -> msg.setHeader("partitionKey", event.getCustomerId()));
+            // Create message with partition key header for ordering
+            Message<String> message = MessageBuilder
+                .withPayload(eventJson)
+                .setHeader("partitionKey", event.getCustomerId())
+                .build();
+            
+            streamBridge.send(ORDER_EVENTS_BINDING, message);
             
             log.debug("Successfully published order created event: {}", eventJson);
         } catch (Exception e) {
