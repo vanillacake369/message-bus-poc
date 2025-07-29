@@ -30,6 +30,50 @@ message-bus-poc/
 
 ## Build and Development Commands
 
+### Development Workflow
+
+#### For code changes to a specific service:
+```bash
+# 1. Build the specific module
+./gradlew :order-service:build
+
+# 2. Rebuild and restart only that service (fast)
+docker-compose up -d --no-deps --build order-service
+```
+
+#### For dependency/configuration changes:
+```bash
+# 1. Build all modules
+./gradlew build
+
+# 2. Restart affected services
+docker-compose up -d --build
+```
+
+#### Complete rebuild workflow:
+```bash
+# 1. Stop everything
+docker-compose down
+
+# 2. Clean build all modules
+./gradlew clean build
+
+# 3. Start fresh
+docker-compose up -d --build
+```
+
+#### Quick verification:
+```bash
+# Check service health
+docker-compose ps
+
+# View logs for specific service
+docker-compose logs -f order-service
+
+# View all service logs
+docker-compose logs -f
+```
+
 ### Multi-Module Building
 ```bash
 # Build all modules
@@ -38,8 +82,10 @@ message-bus-poc/
 # Build specific module
 ./gradlew :order-service:build
 ./gradlew :inventory-service:build
+./gradlew :notification-service:build
+./gradlew :analytics-service:build
 
-# Run specific service
+# Run specific service locally
 ./gradlew :order-service:bootRun
 ./gradlew :analytics-service:bootRun
 
@@ -52,11 +98,20 @@ message-bus-poc/
 # Build and run all services with dependencies
 docker-compose up --build
 
-# Run only message brokers and database
-docker-compose up mysql kafka rabbitmq pulsar
+# Run only message brokers and database (for local development)
+docker-compose up mysql kafka rabbitmq pulsar prometheus grafana
 
-# Scale specific services
-docker-compose up --scale inventory-service=3
+# Start services in background
+docker-compose up -d --build
+
+# Scale specific services for load testing
+docker-compose up --scale inventory-service=3 --scale notification-service=2
+
+# Stop specific service
+docker-compose stop order-service
+
+# Remove containers and networks
+docker-compose down
 ```
 
 ### Testing
@@ -67,6 +122,9 @@ docker-compose up --scale inventory-service=3
 # Test specific module
 ./gradlew :shared:test
 ./gradlew :order-service:test
+./gradlew :inventory-service:test
+./gradlew :notification-service:test
+./gradlew :analytics-service:test
 ```
 
 ## Service Configuration
