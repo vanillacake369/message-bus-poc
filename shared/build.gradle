@@ -9,6 +9,11 @@ dependencies {
     // Common utilities
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // OpenTelemetry observability - shared across all services
+    api 'io.micrometer:micrometer-tracing-bridge-otel'
+    api 'io.opentelemetry:opentelemetry-exporter-otlp'
+    api 'io.micrometer:micrometer-registry-otlp'
 }
 
 // Shared module should not be executable

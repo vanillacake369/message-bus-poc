@@ -22,6 +22,7 @@ dependencies {
     // Reactive support for high-throughput analytics
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     
+    
     // Testing
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
